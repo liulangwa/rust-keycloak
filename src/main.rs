@@ -64,18 +64,20 @@ impl KeycloakAPIGroup {
 
 pub struct KeycloadClient {
     base_url: String,
+    realm: String,
     username: String,
     passward: String,
     token: RefCell<String>,
 }
 
 impl KeycloadClient {
-    pub fn new(base_url: String, username: String, passward: String) -> Self {
+    pub fn new(base_url: String, realm_name: String, username: String, passward: String) -> Self {
         Self {
             base_url: base_url,
             username: username,
             passward: passward,
             token: RefCell::new("".to_string()),
+            realm: realm_name,
         }
     }
 
@@ -93,8 +95,8 @@ impl KeycloadClient {
         );
 
         let auth_url = format!(
-            "{}/auth/realms/master/protocol/openid-connect/token",
-            self.base_url
+            "{}/auth/realms/{}/protocol/openid-connect/token",
+            self.base_url, self.realm
         );
 
         let resp = ClientBuilder::new()
@@ -175,25 +177,16 @@ impl KeycloadClient {
             s => println!("Received response status: {:?}", s),
         };
 
-        // d, _ := ioutil.ReadAll(res.Body)
-        // logrus.Println("create response ", string(d))
-
-        // if res.StatusCode != 201 && res.StatusCode != 204 {
-        // 	return "", errors.Errorf("failed to create %s: (%d) %s", resourceName, res.StatusCode, res.Status)
-        // }
-
-        // location := strings.Split(res.Header.Get("Location"), "/")
-        // uid := location[len(location)-1]
-        // return uid, nil
         Ok(())
     }
 }
 
 fn main() -> Result<(), reqwest::Error> {
     let keycload_client: KeycloadClient = KeycloadClient::new(
-        "https://sso.iam.jdcloud.local".to_string(),
-        "xx".to_string(),
-        "xx".to_string(),
+        String::from("https://sso.iam.jdcloud.local"),
+        String::from("basic"),
+        String::from("xxxx"),
+        String::from("xxxxxx"),
     );
 
     keycload_client.get_auuthenticated_client()?;
@@ -203,7 +196,7 @@ fn main() -> Result<(), reqwest::Error> {
         HashMap::<String, String>::new(),
         HashMap::<String, String>::new(),
         Option::None,
-        String::from("rst-group"),
+        String::from("rst-group-new"),
         Option::None,
     );
 
