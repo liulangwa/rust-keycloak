@@ -1,8 +1,13 @@
 use blocking::ClientBuilder;
+use log::{error, info, warn};
 use reqwest::blocking;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::collections::HashMap;
+
+#[macro_use]
+extern crate log;
+extern crate log4rs;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TokenResponse {
@@ -109,7 +114,7 @@ impl KeycloadClient {
 
         let body = resp.text()?;
 
-        println!("resp body {}", &body);
+        info!("resp body {}", &body);
 
         let token_response_result: Result<TokenResponse, serde_json::Error> =
             serde_json::from_str(&body);
@@ -120,7 +125,7 @@ impl KeycloadClient {
         match &token_response_result {
             Ok(_) => (),
             Err(err) => {
-                println!("{:?}", err);
+                warn!("{:?}", err);
                 // return Err(reqwest::request(err.to_string()));
             }
         };
@@ -131,11 +136,11 @@ impl KeycloadClient {
             if token_response.error.is_none() {
                 self.token
                     .replace(token_response.access_token.clone().unwrap().clone());
-                println!("token:{}", token_response.access_token.unwrap())
+                info!("token:{}", token_response.access_token.unwrap())
             }
         }
 
-        println!("self:{:?}", &self.token.borrow());
+        debug!("self.token:{:?}", &self.token.borrow());
 
         Ok(())
     }
@@ -172,9 +177,9 @@ impl KeycloadClient {
                     .unwrap();
                 let pos = location.rfind("/").unwrap();
                 let (_, id) = location.split_at(pos + 1);
-                println!("success! id:{:?}", id);
+                info!("success! id:{:?}", id);
             }
-            s => println!("Received response status: {:?}", s),
+            s => error!("Received response status: {:?}", s),
         };
 
         Ok(())
@@ -182,6 +187,10 @@ impl KeycloadClient {
 }
 
 fn main() -> Result<(), reqwest::Error> {
+    log4rs::init_file("log4rs.yml", Default::default()).unwrap();
+
+    info!("booting up");
+
     let keycload_client: KeycloadClient = KeycloadClient::new(
         String::from("https://sso.iam.jdcloud.local"),
         String::from("basic"),

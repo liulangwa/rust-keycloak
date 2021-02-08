@@ -1,0 +1,23 @@
+appenders:
+  stdout:
+    kind: console
+    encoder:
+      pattern: "[Console] {d} - {l} -{t} - {m}{n}"
+  file:
+    kind: file
+    path: "log/log.log"
+    encoder:
+      kind: json
+
+root:
+  level: debug
+  appenders:
+    - stdout
+
+loggers:
+  rustls:
+    level: debug
+    appenders:
+      - file
+    additive: false  
+
